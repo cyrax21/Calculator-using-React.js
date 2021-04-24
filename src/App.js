@@ -1,36 +1,62 @@
 import './App.css';
 import { useState } from 'react';
 function App() {
+
+  // This are useState in React 
   let [expression, setExpression] = useState("");
   let [oldExpression, setOldExpression] = useState("");
+  let [prev, setPrev] = useState("ANS");
+
+  // Set in Javascript 
   let numerics = new Set(".0123456789");
   let operators = new Set("+-*/%()");
-  let handleOnClick = function(event){
-    console.log(event);
-    if(event === "Backspace"){
-      setExpression(expression.slice(0,-1));
-    } else if(event === "="){
-      let evaluation = eval(expression);
-      setOldExpression(expression);
-      setExpression(String(evaluation));
-    } else{
-      setOldExpression(expression);
-      setExpression(expression + event);
-    }
+  //This is used to make buttons
+  let buttons = ['(', ')', '%', 'AC', '7', '8', '9', '/', '4', '5', '6', '*', '3', '2', '1', '-', '0', '.', '=', '+'];
+  
+  let evaluateExpression = function() {
+    let evaluation = eval(expression);
+    setOldExpression(expression + "=");
+    setExpression(String(evaluation));
+    setPrev("ANS");
   }
+  let putNumerics = function(value) {
+    if(prev == "ANS"){
+      setOldExpression("Ans = " + expression);
+      setExpression(value);
+    }else{
+      setExpression(expression + value);
+    }
+    setPrev("NUM");
+  }
+  let putOperator = function(value) {
+    if(prev != "OP"){
+      setExpression(expression + value);
+    }else{
+      setExpression(expression.slice(0,-1) + value);
+    }
+    setPrev("OP");
+  }
+  let putDelete = function(){
+    if(expression.length>=1){
+      setExpression(expression.slice(0,-1));
+    }
+    setPrev("DEL");
+  }
+  //Used to Handle any keypress event
   let handleKeyup = function(event){
     console.log(event.key);
     if(event.key === "Backspace"){
-      setExpression(expression.slice(0,-1));
-    } else if(numerics.has(event.key) || operators.has(event.key)){
-      setOldExpression(expression);
-      setExpression(expression + event.key);
+      putDelete();
+    } else if(numerics.has(event.key)){ 
+      putNumerics(event.key);
+    } else if(operators.has(event.key)){
+      putOperator(event.key);
     } else if(event.key === "Enter" || event.key === "="){
-      let evaluation = eval(expression);
-      setOldExpression(expression);
-      setExpression(String(evaluation));
+      evaluateExpression();
     }
   }
+
+  // We will return this which will be received and rendered by index.js
   return (
     <div className="App" tabIndex={0} onKeyUp={handleKeyup}>
       <div style={{
@@ -74,62 +100,42 @@ function App() {
         </div>
         <div style={{
           width: '400px',
-          height: '300px',
           background: '#fff',
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
           justifyContent: 'space-around',
           border: '3px inset black',
           borderRadius: '10px',
           padding: '5px'
         }}>
-          <div style={ rowDesign }>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("("); }}> ( </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick(")"); }}> ) </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("%"); }}> % </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("Backspace"); }}> AC </button>
-          </div>
-          <div style={ rowDesign }>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("7"); }}> 7 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("8"); }}> 8 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("9"); }}> 9 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("/"); }}> / </button>
-          </div>
-          <div style={ rowDesign }>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("4"); }}> 4 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("5"); }}> 5 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("6"); }}> 6 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("*"); }}> x </button>
-          </div>
-          <div style={ rowDesign }>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("1"); }}> 1 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("2"); }}> 2 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("3"); }}> 3 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("-"); }}> - </button>
-          </div>
-          <div style={ rowDesign }>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("0"); }}> 0 </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("."); }}> . </button>
-            <button style={{
-              background: '#bdf4ff',
-              fontSize: '30px',
-              width: '95px'
-            }} onClick={ function(){ handleOnClick("="); }}> = </button>
-            <button style={ btnStyle } onClick={ function(){ handleOnClick("+"); }}> + </button>
-          </div>
+          {buttons.map(function (buttonValue, idx) {
+              return (
+                <button
+                  style={{
+                    width: "90px",
+                    padding: "5px",
+                    margin: "5px",
+                  }}
+                  onClick={function () {
+                    if (buttonValue === "AC") {
+                      putDelete();
+                    } else if (numerics.has(buttonValue)) {
+                      putNumerics(buttonValue);
+                    } else if (operators.has(buttonValue)) {
+                      putOperator(buttonValue);
+                    } else if (buttonValue === "=") {
+                      evaluateExpression();
+                    }
+                  }}
+                >{buttonValue}</button>
+              );
+            })
+          }
         </div>
       </div>
     </div>
   );
 }
 
-const btnStyle = {
-  fontSize: '30px',
-  width: '95px'
-}
-const rowDesign = {
-  display: 'flex',
-  flexDirection: 'row',
-  justifyContent: 'space-around'
-}
 export default App;
